@@ -18,8 +18,33 @@ module.exports = {
 
             for (i = 0; i < rows.length; i++) {
                 let row = rows[i];
-                result.push(`${row.querySelector('a').innerText} (${row.querySelector('time') ? row.querySelector('time').getAttribute('datetime') : "Original name"})`);
+                if (row.querySelector('a'))
+                    result.push(`${row.querySelector('a').innerText} (${row.querySelector('time') ? row.querySelector('time').getAttribute('datetime') : "Original name"})`);
             }
+
+            return result;
+        });
+
+        const bio = await page.evaluate(() => {
+            let div = document.querySelector('.my-1+.row');
+            if (!div || div.children[1].textContent.startsWith("\n")) {
+                return "None";
+            }
+            return div.children[1].textContent;
+        });
+
+        const informations = await page.evaluate(() => {
+            let result = [];
+            let parent = document.querySelector('.col.d-flex.flex-wrap.justify-content-end.justify-content-lg-start');
+            if (!parent) {
+                return "None";
+            }
+
+            Array.from(parent.children).forEach(information => {
+                let name = information.getAttribute('data-original-title') ? information.getAttribute('data-original-title') : information.getAttribute('title');
+                let value = information.getAttribute('data-content') ? information.getAttribute('data-content') : information.getAttribute('href');
+                result.push(`${name}: ${value}`);   
+            });
 
             return result;
         });
@@ -29,6 +54,8 @@ module.exports = {
 
         return {
             profile_link: `https://namemc.com/profile/${username}`,
+            bio: bio,
+            informations: informations,
             usernames_history: usernames
         }
     }
